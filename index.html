@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japan Master Torque</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #ef4444;
+            --accent-hover: #dc2626;
+            --border: #334155;
+            --highlight: #38bdf8;
+            --badge-bg: #334155;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-primary); padding: 12px; line-height: 1.5; }
+        header { display: flex; flex-direction: column; gap: 10px; background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+        .app-title { display: flex; align-items: center; justify-content: space-between; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-badge { background: var(--accent); color: white; font-weight: bold; padding: 8px 12px; border-radius: 8px; font-size: 1.1rem; }
+        h1 { font-size: 1.25rem; color: var(--text-primary); }
+        .subtitle { font-size: 0.8rem; color: var(--text-secondary); }
+        .pro-badge { background: #d97706; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        
+        .search-box { position: relative; width: 100%; margin-top: 5px; }
+        .search-box input { width: 100%; padding: 10px 15px 10px 38px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 0.95rem; outline: none; }
+        .search-box input:focus { border-color: var(--highlight); }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+
+        .brand-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 10px; scrollbar-width: none; }
+        .brand-filters::-webkit-scrollbar { display: none; }
+        .brand-btn { background: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+        .brand-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; }
+        .brand-name { font-weight: bold; color: var(--highlight); font-size: 1rem; }
+        .fuel-type { font-size: 0.75rem; background: var(--badge-bg); padding: 2px 6px; border-radius: 4px; color: var(--text-secondary); }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; }
+        th, td { border: 1px solid var(--border); padding: 8px 6px; text-align: left; }
+        th { background: rgba(0,0,0,0.2); color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; }
+        td.torque { color: #4ade80; font-weight: bold; }
+        td.angle { color: #f472b6; font-weight: bold; }
+        .no-result { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 0.9rem; }
+        .offline-indicator { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #4ade80; margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="app-title">
+            <div class="logo-area">
+                <div class="logo-badge">MT</div>
+                <div>
+                    <h1>JAPAN MASTER TORQUE</h1>
+                    <div class="subtitle">10 Brands | Diesel & Petrol | Offline Ready</div>
+                </div>
+            </div>
+            <span class="pro-badge">PRO</span>
+        </div>
+        <div class="offline-indicator">⚡ 100% Offline Database Active</div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="ရှာရန် — engine code, component, socket..." oninput="filterSpecs()">
+        </div>
+    </header>
+
+    <div class="brand-filters" id="brandFilters">
+        <button class="brand-btn active" onclick="filterBrand('All')">All (10)</button>
+        <button class="brand-btn" onclick="filterBrand('Toyota')">Toyota</button>
+        <button class="brand-btn" onclick="filterBrand('Nissan')">Nissan</button>
+        <button class="brand-btn" onclick="filterBrand('Honda')">Honda</button>
+        <button class="brand-btn" onclick="filterBrand('Isuzu')">Isuzu</button>
+        <button class="brand-btn" onclick="filterBrand('Mitsubishi')">Mitsubishi</button>
+        <button class="brand-btn" onclick="filterBrand('Hino')">Hino</button>
+        <button class="brand-btn" onclick="filterBrand('Mazda')">Mazda</button>
+        <button class="brand-btn" onclick="filterBrand('Subaru')">Subaru</button>
+        <button class="brand-btn" onclick="filterBrand('Suzuki')">Suzuki</button>
+        <button class="brand-btn" onclick="filterBrand('Daihatsu')">Daihatsu</button>
+    </div>
+
+    <div id="contentArea"></div>
+
+    <script>
+        const database = [
+            {
+                brand: "Toyota",
+                series: "KD / GD Series",
+                fuel: "Diesel",
+                specs: [
+                    { part: "Cylinder Head", socket: "14mm (12-pt)", torque: "39 N·m (29 Ft-lb)", angle: "+90°", note: "ဆီသုတ်ပြီး တင်းပါ။" },
+                    { part: "Main Bearing", socket: "17mm", torque: "55 N·m", angle: "+90°", note: "အချိန်စဥ့်စစ်ပါ။" },
+                    { part: "Con-Rod Bearing", socket: "14mm", torque: "38 N·m", angle: "+90°", note: "အသစ်လဲပါ။" }
+                ]
+            },
+            {
+                brand: "Nissan",
+                series: "ZD30 / TD27 Series",
+                fuel: "Diesel",
+                specs: [
+                    { part: "Cylinder Head", socket: "12mm (Torx)", torque: "45 N·m", angle: "+90° +90°", note: "အဆင့်လိုက် တင်းပါ။" },
+                    { part: "Main Bearing", socket: "14mm", torque: "75 N·m", angle: "-", note: "စင်တာမှစ၍ တင်းပါ။" }
+                ]
+            },
+            {
+                brand: "Honda",
+                series: "GD1 / L13A / K20A",
+                fuel: "Petrol",
+                specs: [
+                    { part: "Cylinder Head", socket: "10mm (Hex)", torque: "29 N·m", angle: "+90° +90°", note: "အေးినချိန်မှ တင်းပါ။" },
+                    { part: "Con-Rod Bearing", socket: "10mm", torque: "20 N·m", angle: "+90°", note: "ორიဂျင်နယ်သုံးပါ။" }
+                ]
+            },
+            {
+                brand: "Isuzu",
+                series: "4JJ1 / 4HK1 Series",
+                fuel: "Diesel",
+                specs: [
+                    { part: "Cylinder Head", socket: "17mm", torque: "85 N·m", angle: "+90° +60°", note: "အထူးဂရုပြုပါ။" },
+                    { part: "Main Bearing", socket: "19mm", torque: "110 N·m", angle: "+30°", note: "င်္အဂျင်ဝမ်း သန့်ရှင်းပါ။" }
+                ]
+            },
+            {
+                brand: "Mitsubishi",
+                series: "4D56 / 4M40 Series",
+                fuel: "Diesel",
+                specs: [
+                    { part: "Cylinder Head", socket: "12mm", torque: "115 N·m", angle: "-", note: "အေးသွားမှ ဖြုတ်ပါ။" },
+                    { part: "Con-Rod Bearing", socket: "14mm", torque: "53 N·m", angle: "-", note: "ပွတ်တိုက်အား စစ်ပါ။" }
+                ]
+            },
+            {
+                brand: "Hino",
+                series: "J05E / N04C Series",
+                fuel: "Diesel",
+                specs: [
+                    { part: "Cylinder Head", socket: "19mm", torque: "140 N·m", angle: "+90°", note: "ထရပ်ကားသုံး ကြီးမားသော ဘို့." },
+                    { part: "Main Bearing", socket: "21mm", torque: "180 N·m", angle: "+45°", note: "ប្រយ័ត្ន torquemeter သုံးပါ။" }
+                ]
+            },
+            {
+                brand: "Mazda",
+                series: "SkyActiv-D / MZR",
+                fuel: "Diesel / Petrol",
+                specs: [
+                    { part: "Cylinder Head", socket: "Torx E12", torque: "35 N·m", angle: "+90° +90°", note: "ប្រយ័ត្នเกลียวหวาน" },
+                    { part: "Con-Rod", socket: "12mm", torque: "45 N·m", angle: "+45°", note: "ဆီအနည်းငယ်ဆမ်းပါ။" }
+                ]
+            },
+            {
+                brand: "Subaru",
+                series: "EJ20 / FB20 Boxer",
+                fuel: "Petrol",
+                specs: [
+                    { part: "Cylinder Head", socket: "12mm / 10mm", torque: "30 N·m", angle: "+90° +45°", note: "Боксерအင်ဂျင် ဘလောက်ဝက်အူစဉ်." },
+                    { part: "Main Bearing", socket: "14mm", torque: "25 N·m", angle: "+60°", note: "အတွင်းမှအပြင်သို့ တင်းပါ။" }
+                ]
+            },
+            {
+                brand: "Suzuki",
+                series: "K14B / M16A Series",
+                fuel: "Petrol",
+                specs: [
+                    { part: "Cylinder Head", socket: "10mm", torque: "32 N·m", angle: "+60° +60°", note: "အပေါ့စား အင်ဂျင်များအတွက်။" },
+                    { part: "Con-Rod", socket: "10mm", torque: "28 N·m", angle: "-", note: "စံချိန်မီ တင်းပါ။" }
+                ]
+            },
+            {
+                brand: "Daihatsu",
+                series: "KF-VE / JB-DET Series",
+                fuel: "Petrol",
+                specs: [
+                    { part: "Cylinder Head", socket: "10mm", torque: "25 N·m", angle: "+90° +90°", note: "K-Car အင်ဂျင်ငယ်များ။" },
+                    { part: "Main Bearing", socket: "12mm", torque: "40 N·m", angle: "+30°", note: "သေချာစစ်ဆေးပါ။" }
+                ]
+            }
+        ];
+
+        let curBrand = 'All';
+
+        function filterBrand(b) {
+            curBrand = b;
+            document.querySelectorAll('.brand-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.includes(b) || (b === 'All' && btn.textContent.includes('All')));
+            });
+            renderDatabase();
+        }
+
+        function filterSpecs() {
+            renderDatabase();
+        }
+
+        function renderDatabase() {
+            const container = document.getElementById('contentArea');
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            container.innerHTML = '';
+
+            let filtered = database.filter(item => {
+                let matchBrand = (curBrand === 'All' || item.brand.toLowerCase() === curBrand.toLowerCase());
+                let matchQuery = item.brand.toLowerCase().includes(query) || 
+                                 item.series.toLowerCase().includes(query) || 
+                                 item.fuel.toLowerCase().includes(query) ||
+                                 item.specs.some(s => s.part.toLowerCase().includes(query) || s.socket.toLowerCase().includes(query) || s.note.toLowerCase().includes(query));
+                return matchBrand && matchQuery;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="no-result">ရှာမတွေ့ပါ။ အခြားစာသားဖြင့် ရှာကြည့်ပါ။</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                let card = document.createElement('div');
+                card.className = 'card';
+                
+                let rows = '';
+                item.specs.forEach(s => {
+                    if(!query || item.brand.toLowerCase().includes(query) || item.series.toLowerCase().includes(query) || s.part.toLowerCase().includes(query) || s.socket.toLowerCase().includes(query) || s.note.toLowerCase().includes(query)) {
+                        rows += `<tr>
+                            <td>${s.part}</td>
+                            <td>${s.socket}</td>
+                            <td class="torque">${s.torque}</td>
+                            <td class="angle">${s.angle}</td>
+                            <td>${s.note}</td>
+                        </tr>`;
+                    }
+                });
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="brand-name">${item.brand} — ${item.series}</span>
+                        <span class="fuel-type">⛽ ${item.fuel}</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>အစိတ်အပိုင်း</th>
+                                <th>ဆိုကက်</th>
+                                <th>တိုကျော့</th>
+                                <th>ထောင့်</th>
+                                <th>မှတ်စု</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        renderDatabase();
+    </script>
+</body>
+</html>
