@@ -1,0 +1,1 @@
+[![.github/workflows/main.yml](https://github.com/khantkhant21788-cell/truck-torque/actions/workflows/main.yml/badge.svg)](https://github.com/khantkhant21788-cell/truck-torque/actions/workflows/main.yml)
